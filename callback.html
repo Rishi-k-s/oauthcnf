@@ -4,33 +4,19 @@
     <title>OAuth Callback</title>
     <script>
         window.onload = function() {
-            console.log("Callback page loaded");
-            // Parse the URL fragment (everything after #)
-            const hash = window.location.hash.substring(1);
-            console.log("URL hash:", hash);
-            
-            // Extract the access token
-            const params = new URLSearchParams(hash);
-            const accessToken = params.get('access_token');
-            console.log("Access token:", accessToken);
-            
-            if (accessToken) {
-                // Try sending the token to the opener window
-                if (window.opener) {
-                    console.log("Sending token to opener");
-                    window.opener.postMessage({ access_token: accessToken }, "*");
-                    
-                    // Add a visual confirmation
-                    document.getElementById("status").innerText = "Token sent! You can close this window.";
-                } else {
-                    console.error("No opener window found");
-                    document.getElementById("status").innerText = "Error: Could not communicate with plugin.";
-                }
-            } else {
-                console.error("No access token found in URL");
-                document.getElementById("status").innerText = "No token found in URL.";
-            }
-        };
+        console.log("Callback page loaded");
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get('access_token');
+        
+        if (accessToken) {
+            // Store token in localStorage instead of using postMessage
+            localStorage.setItem('figma_auth_token', accessToken);
+            document.getElementById("status").innerText = "Authentication successful! You can close this window and return to Figma.";
+        } else {
+            document.getElementById("status").innerText = "No token found in URL.";
+        }
+    };
     </script>
 </head>
 <body>
