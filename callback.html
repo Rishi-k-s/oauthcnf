@@ -11,15 +11,13 @@
         console.log("Access Token:", accessToken);
 
         if (accessToken) {
-            console.log("callback.html: Sending store-token message"); // Add this line
-
+            console.log("callback.html: Sending store-token-ui message");
             window.parent.postMessage({
                 pluginMessage: {
-                    type: "store-token",
+                    type: "store-token-ui",
                     token: accessToken
                 }
-            },"*");
-            // Removed: window.close();
+            }, "*");
         } else {
             console.error("Access token not found in URL.");
         }
