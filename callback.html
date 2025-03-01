@@ -12,7 +12,7 @@
 
         if (accessToken) {
             console.log("callback.html: Sending store-token-ui message");
-            window.parent.postMessage({
+            window.top.postMessage({ // Use window.top
                 pluginMessage: {
                     type: "store-token-ui",
                     token: accessToken
