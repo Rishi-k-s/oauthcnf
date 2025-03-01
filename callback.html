@@ -11,7 +11,8 @@
         console.log("Access Token:", accessToken);
 
         if (accessToken) {
-            // Store the token in clientStorage
+            console.log("callback.html: Sending store-token message"); // Add this line
+
             window.parent.postMessage({
                 pluginMessage: {
                     type: "store-token",
