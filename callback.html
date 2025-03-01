@@ -4,6 +4,8 @@
     <title>Auth Callback</title>
 </head>
 <body>
+    <div id="status">Processing authentication...</div>
+    
     <script>
         // Parse token from URL hash
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -12,26 +14,51 @@
         console.log("Access Token:", accessToken);
         
         if (accessToken) {
-            console.log("callback.html: Sending store-token-ui message");
+            document.getElementById('status').textContent = "Authentication successful! Communicating with Figma...";
             
-            // Send message to the opener (the auth window that opened this page)
+            // Try to communicate with the opener
             if (window.opener) {
-                window.opener.postMessage({
-                    pluginMessage: {
-                        type: "store-token",
-                        token: accessToken
-                    }
-                }, "*");
-                
-                // Close this window after sending the token
-                setTimeout(() => window.close(), 1000);
+                try {
+                    // Send message directly to the parent window (which should be the Figma UI)
+                    window.opener.postMessage({
+                        pluginMessage: {
+                            type: "store-token",
+                            token: accessToken
+                        }
+                    }, "*");
+                    
+                    document.getElementById('status').textContent = "Authentication successful! You can close this window.";
+                    
+                    // Close this window after sending the token
+                    setTimeout(() => window.close(), 2000);
+                } catch (e) {
+                    console.error("Error posting message:", e);
+                    document.getElementById('status').textContent = "Error communicating with Figma: " + e.message;
+                }
             } else {
-                document.body.innerHTML = "<p>Authentication successful, but could not communicate with Figma. Please close this window and try again.</p>";
+                document.getElementById('status').textContent = "Authentication successful, but could not communicate with Figma. Please copy the token below and paste it manually:";
+                
+                // Display token for manual copy
+                const tokenDisplay = document.createElement('textarea');
+                tokenDisplay.value = accessToken;
+                tokenDisplay.style.width = '100%';
+                tokenDisplay.style.height = '50px';
+                tokenDisplay.style.marginTop = '10px';
+                document.body.appendChild(tokenDisplay);
+                
+                const copyButton = document.createElement('button');
+                copyButton.textContent = 'Copy Token';
+                copyButton.style.marginTop = '10px';
+                copyButton.onclick = () => {
+                    tokenDisplay.select();
+                    document.execCommand('copy');
+                    copyButton.textContent = 'Copied!';
+                };
+                document.body.appendChild(copyButton);
             }
         } else {
-            document.body.innerHTML = "<p>Authentication failed. Please close this window and try again.</p>";
+            document.getElementById('status').textContent = "Authentication failed. No access token received. Please close this window and try again.";
         }
     </script>
-    <p>Authentication successful! You can close this window.</p>
 </body>
 </html>
