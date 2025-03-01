@@ -1,26 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>OAuth Callback</title>
+    <title>Auth Callback</title>
 </head>
 <body>
     <script>
-        console.log("Callback page loaded.");
+        // Parse token from URL hash
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
+        
         console.log("Access Token:", accessToken);
-
+        
         if (accessToken) {
             console.log("callback.html: Sending store-token-ui message");
-            window.top.postMessage({ // Use window.top
-                pluginMessage: {
-                    type: "store-token-ui",
-                    token: accessToken
-                }
-            }, "*");
+            
+            // Send message to the opener (the auth window that opened this page)
+            if (window.opener) {
+                window.opener.postMessage({
+                    pluginMessage: {
+                        type: "store-token",
+                        token: accessToken
+                    }
+                }, "*");
+                
+                // Close this window after sending the token
+                setTimeout(() => window.close(), 1000);
+            } else {
+                document.body.innerHTML = "<p>Authentication successful, but could not communicate with Figma. Please close this window and try again.</p>";
+            }
         } else {
-            console.error("Access token not found in URL.");
+            document.body.innerHTML = "<p>Authentication failed. Please close this window and try again.</p>";
         }
     </script>
+    <p>Authentication successful! You can close this window.</p>
 </body>
 </html>
