@@ -1,31 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Authentication Complete</title>
-    <script>
-        window.onload = function() {
-            document.getElementById("status").innerText = "Authentication successful! You can close this window.";
-            
-            // If we're in the popup window opened by the plugin
-            if (window.opener) {
-                // Extract the token and pass it back to the opener
-                const hash = window.location.hash.substring(1);
-                const params = new URLSearchParams(hash);
-                const accessToken = params.get('access_token');
-                
-                if (accessToken && window.opener.postMessage) {
-                    window.opener.postMessage({
-                        type: "auth-token",
-                        token: accessToken
-                    }, "*");
-                }
-            }
-        };
-    </script>
+    <title>OAuth Callback</title>
 </head>
 <body>
-    <h2>Authentication Complete</h2>
-    <p id="status">Processing authentication...</p>
-    <p>You can close this window and return to Figma.</p>
+    <script>
+        console.log("Callback page loaded."); // Add this line
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        console.log("Access Token:", accessToken); //add this line.
+
+        if (accessToken) {
+            window.opener.postMessage({
+                pluginMessage: {
+                    type: "auth-success",
+                    token: accessToken
+                }
+            }, "*");
+            window.close();
+        } else {
+            console.error("Access token not found in URL.");
+        }
+    </script>
 </body>
 </html>
