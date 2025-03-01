@@ -5,19 +5,23 @@
 </head>
 <body>
     <script>
-        console.log("Callback page loaded."); // Add this line
+        console.log("Callback page loaded.");
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
-        console.log("Access Token:", accessToken); //add this line.
+        console.log("Access Token:", accessToken);
 
         if (accessToken) {
-            window.opener.postMessage({
-                pluginMessage: {
-                    type: "auth-success",
-                    token: accessToken
-                }
-            }, "*");
-            window.close();
+            if (window.opener) { // Check if window.opener exists
+                window.opener.postMessage({
+                    pluginMessage: {
+                        type: "auth-success",
+                        token: accessToken
+                    }
+                }, "*");
+                window.close();
+            } else {
+                console.error("window.opener is null. Cannot send postMessage.");
+            }
         } else {
             console.error("Access token not found in URL.");
         }
