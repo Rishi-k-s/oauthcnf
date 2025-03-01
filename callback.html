@@ -1,64 +1,101 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Auth Callback</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Callback</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            color: #333;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            border: 1px solid #eaeaea;
+        }
+        
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .token-box {
+            background-color: #e6f4ff;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 20px 0;
+            word-break: break-all;
+            text-align: left;
+            font-family: monospace;
+        }
+        
+        button {
+            background-color: #18A0FB;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #0D8DE3;
+        }
+        
+        .success {
+            color: #0C6B58;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <div id="status">Processing authentication...</div>
-    
+    <div class="container">
+        <h2>Authentication Successful</h2>
+        <p>Please copy the access token below and paste it into the Figma plugin:</p>
+        
+        <div class="token-box" id="tokenDisplay">Loading token...</div>
+        
+        <button id="copyButton">Copy Token</button>
+        <p class="success" id="copySuccess">Token copied to clipboard!</p>
+        
+        <p>You can close this window after copying the token.</p>
+    </div>
+
     <script>
-        // Parse token from URL hash
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        
-        console.log("Access Token:", accessToken);
-        
-        if (accessToken) {
-            document.getElementById('status').textContent = "Authentication successful! Communicating with Figma...";
+        document.addEventListener('DOMContentLoaded', function() {
+            // Extract token from the URL fragment
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const accessToken = hashParams.get('access_token');
             
-            // Try to communicate with the opener
-            if (window.opener) {
-                try {
-                    // Send message directly to the parent window (which should be the Figma UI)
-                    window.opener.postMessage({
-                        pluginMessage: {
-                            type: "store-token",
-                            token: accessToken
-                        }
-                    }, "*");
-                    
-                    document.getElementById('status').textContent = "Authentication successful! You can close this window.";
-                    
-                    // Close this window after sending the token
-                    setTimeout(() => window.close(), 2000);
-                } catch (e) {
-                    console.error("Error posting message:", e);
-                    document.getElementById('status').textContent = "Error communicating with Figma: " + e.message;
-                }
+            if (accessToken) {
+                // Display token
+                document.getElementById('tokenDisplay').textContent = accessToken;
+                
+                // Copy button functionality
+                document.getElementById('copyButton').addEventListener('click', function() {
+                    navigator.clipboard.writeText(accessToken).then(function() {
+                        document.getElementById('copySuccess').style.display = 'block';
+                        setTimeout(function() {
+                            document.getElementById('copySuccess').style.display = 'none';
+                        }, 3000);
+                    });
+                });
             } else {
-                document.getElementById('status').textContent = "Authentication successful, but could not communicate with Figma. Please copy the token below and paste it manually:";
-                
-                // Display token for manual copy
-                const tokenDisplay = document.createElement('textarea');
-                tokenDisplay.value = accessToken;
-                tokenDisplay.style.width = '100%';
-                tokenDisplay.style.height = '50px';
-                tokenDisplay.style.marginTop = '10px';
-                document.body.appendChild(tokenDisplay);
-                
-                const copyButton = document.createElement('button');
-                copyButton.textContent = 'Copy Token';
-                copyButton.style.marginTop = '10px';
-                copyButton.onclick = () => {
-                    tokenDisplay.select();
-                    document.execCommand('copy');
-                    copyButton.textContent = 'Copied!';
-                };
-                document.body.appendChild(copyButton);
+                document.getElementById('tokenDisplay').textContent = 'No access token found in URL.';
+                document.getElementById('copyButton').disabled = true;
             }
-        } else {
-            document.getElementById('status').textContent = "Authentication failed. No access token received. Please close this window and try again.";
-        }
+        });
     </script>
 </body>
 </html>
